@@ -1,4 +1,4 @@
-"""Añadir tabla ConversationEval para métricas Ragas
+"""Add ConversationEval table for Ragas metrics
 
 Revision ID: c379d75da6fd
 Revises: 694f527c1374

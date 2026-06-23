@@ -17,13 +17,13 @@ const InputBar = ({ onSendMessage, disabled }) => {
       <input
         type="text"
         className="input-field"
-        placeholder="Escribe tu mensaje..."
+        placeholder="Type your message..."
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         disabled={disabled}
       />
       <button type="submit" className="send-button" disabled={disabled}>
-        Enviar
+        Send
       </button>
     </form>
   );

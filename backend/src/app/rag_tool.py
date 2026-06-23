@@ -13,12 +13,12 @@ OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 if PINECONE_INDEX_NAME not in pc.list_indexes().names():
-    raise ValueError(f"El índice '{PINECONE_INDEX_NAME}' no existe en Pinecone.")
+    raise ValueError(f"The index '{PINECONE_INDEX_NAME}' does not exist in Pinecone.")
 
 index = pc.Index(PINECONE_INDEX_NAME)
 
 def get_embedding(text: str):
-    """Genera embedding de una consulta."""
+    """Generate an embedding for a query."""
     response = client.embeddings.create(
         model=EMBEDDING_MODEL,
         input=text
@@ -27,10 +27,14 @@ def get_embedding(text: str):
 
 def semantic_search(query: str, top_k: int = top_k) -> str:
     """
-    Busca y recupera pasajes de texto directamente del libro "An Introduction to Statistical Learning with Applications in Python".
-    Utiliza esta herramienta SIEMPRE que el usuario pregunte por conceptos, definiciones, algoritmos o ejemplos del libro.
-    Parámetros:
-      - query (str): La pregunta del usuario o los conceptos clave a buscar. Por ejemplo: "explicación de k-means" o "diferencia entre Lasso y Ridge".
+    Search for and retrieve passages directly from the book
+    "An Introduction to Statistical Learning with Applications in Python".
+    Use this tool EVERY TIME the user asks about concepts, definitions,
+    algorithms, or examples from the book.
+
+    Parameters:
+      - query (str): The user's question or the key concepts to search for.
+        For example: "explanation of k-means" or "difference between Lasso and Ridge".
     """
     query_vector = get_embedding(query)
 
@@ -49,9 +53,9 @@ def semantic_search(query: str, top_k: int = top_k) -> str:
 
 def semantic_search_raw(query: str, top_k: int = 3) -> dict:
     """
-    Funcion que hace exactamente lo mismo que semantic_search.
-    La unica diferencia es el output.
-    Se utiliza para generar las métricas.
+    Functionally identical to semantic_search.
+    The only difference is the output format.
+    It is used to generate evaluation metrics.
     """
     query_vector = get_embedding(query)
 

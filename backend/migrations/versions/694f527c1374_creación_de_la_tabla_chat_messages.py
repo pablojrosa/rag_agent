@@ -1,4 +1,4 @@
-"""Creación de la tabla chat_messages
+"""Create the chat_messages table
 
 Revision ID: 694f527c1374
 Revises: 

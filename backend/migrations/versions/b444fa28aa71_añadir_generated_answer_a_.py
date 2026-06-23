@@ -1,4 +1,4 @@
-"""Añadir generated_answer a EvaluationResult
+"""Add generated_answer to EvaluationResult
 
 Revision ID: b444fa28aa71
 Revises: 12b5fe41264c

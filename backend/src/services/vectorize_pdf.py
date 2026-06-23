@@ -20,18 +20,18 @@ try:
     openai.api_key = OPENAI_API_KEY
     
 except Exception as e:
-    raise RuntimeError(f"Error al inicializar los clientes. Revisá tus API keys. Error: {e}")
+    raise RuntimeError(f"Error initializing clients. Check your API keys. Error: {e}")
 
 def extract_text_from_pdf(pdf_path: str) -> list[dict]:
-    """Extrae texto página por página con metadatos."""
-    print(f"Extrayendo texto de {pdf_path}...")
+    """Extract text page by page with metadata."""
+    print(f"Extracting text from {pdf_path}...")
     reader = PdfReader(pdf_path)
     pages = []
     for i, page in enumerate(reader.pages, start=1):
         text = page.extract_text()
         if text:
             pages.append({"page": i, "text": text})
-    print(f"Extracción completada: {len(pages)} páginas extraídas.")
+    print(f"Extraction complete: {len(pages)} pages extracted.")
     return pages
 
 def get_embeddings(texts: list[str]) -> list[list[float]]:
@@ -43,9 +43,7 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
 
 
 def chunk_text(text: str) -> list[str]:
-    """
-    Divide texto en chunks con superposición mínima, respetando párrafos/secciones.
-    """
+    """Split text into chunks with minimal overlap while respecting paragraphs and sections."""
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=150,
@@ -56,11 +54,9 @@ def chunk_text(text: str) -> list[str]:
 
 
 def index_pdf_to_pinecone(pdf_path: str):
-    """
-    Proceso completo: extrae, chardea, vectoriza y sube un PDF a Pinecone.
-    """
+    """Full pipeline: extract, chunk, vectorize, and upload a PDF to Pinecone."""
     if PINECONE_INDEX_NAME not in pc.list_indexes().names():
-        raise ValueError(f"El índice '{PINECONE_INDEX_NAME}' no existe.")
+        raise ValueError(f"The index '{PINECONE_INDEX_NAME}' does not exist.")
     index = pc.Index(PINECONE_INDEX_NAME)
 
     pages = extract_text_from_pdf(pdf_path)
@@ -75,7 +71,7 @@ def index_pdf_to_pinecone(pdf_path: str):
             })
 
     batch_size = 50
-    print(f"Vectorizando y subiendo {len(all_chunks)} chunks a Pinecone (batch={batch_size})...")
+    print(f"Vectorizing and uploading {len(all_chunks)} chunks to Pinecone (batch={batch_size})...")
 
     for i in tqdm(range(0, len(all_chunks), batch_size)):
         batch_chunks = all_chunks[i: i + batch_size]
@@ -96,9 +92,9 @@ def index_pdf_to_pinecone(pdf_path: str):
         index.upsert(vectors=vectors_to_upsert)
         time.sleep(0.2)
 
-    print("\n✅ ¡Proceso completado! El libro fue vectorizado con vectores densos y subido a Pinecone.")
+    print("\n✅ Process complete. The book was vectorized with dense vectors and uploaded to Pinecone.")
     stats = index.describe_index_stats()
-    print(f"📊 Estadísticas del índice: {stats}")
+    print(f"📊 Index statistics: {stats}")
 
 
 if __name__ == "__main__":
@@ -107,7 +103,7 @@ if __name__ == "__main__":
     pdf_file_path = backend_root / "data" / "PDF-GenAI-Challenge.pdf"
 
     if not os.path.exists(pdf_file_path):
-        print(f"❌ Error: El archivo {pdf_file_path} no fue encontrado.")
+        print(f"❌ Error: File not found: {pdf_file_path}.")
     else:
-        print("✅ Archivo PDF encontrado. Iniciando la vectorización...")
+        print("✅ PDF file found. Starting vectorization...")
         index_pdf_to_pinecone(pdf_file_path)

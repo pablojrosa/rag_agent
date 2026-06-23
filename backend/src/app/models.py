@@ -11,7 +11,7 @@ class ChatMessage(db.Model):
 
     message_id = db.Column(db.String, primary_key=True, default=lambda: str(uuid.uuid4()))
     session_id = db.Column(db.String, nullable=False, index=True)
-    sender = db.Column(db.String(10), nullable=False) # 'user' o 'agent'
+    sender = db.Column(db.String(10), nullable=False)  # 'user' or 'agent'
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     message = db.Column(db.Text, nullable=False)
 

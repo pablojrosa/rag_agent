@@ -6,12 +6,12 @@ from .models import db, ConversationEval
 
 def run_online_evaluation(app, question, answer, context, session_id, agent_message_id):
     """
-    Esta función ahora vive en su propio módulo.
-    Ejecuta la evaluación de Ragas para una sola interacción.
+    This function now lives in its own module.
+    Run the Ragas evaluation for a single interaction.
     """
     with app.app_context():
         try:
-            print(f"📊 Iniciando evaluación online para el mensaje {agent_message_id}...")
+            print(f"📊 Starting online evaluation for message {agent_message_id}...")
             data = {
                 "question": [question],
                 "answer": [answer],
@@ -34,8 +34,8 @@ def run_online_evaluation(app, question, answer, context, session_id, agent_mess
             
             db.session.add(new_evaluation)
             db.session.commit()
-            print(f"✅ Evaluación online para {agent_message_id} guardada exitosamente.")
+            print(f"✅ Online evaluation for {agent_message_id} saved successfully.")
 
         except Exception as e:
-            print(f"❌ Error en la evaluación online para {agent_message_id}: {e}")
+            print(f"❌ Error during online evaluation for {agent_message_id}: {e}")
             db.session.rollback()

@@ -18,23 +18,23 @@ from src.app.main_agent import main_agent
 from src.app.rag_tool import semantic_search_raw
 
 PROMPT_TEMPLATE = """
-Eres un asistente experto en el libro "An Introduction to Statistical Learning with Applications in Python".
-Tu tarea es responder la pregunta del usuario basándote ÚNICA y EXCLUSIVAMENTE en el siguiente contexto.
-No inventes información ni uses conocimiento externo. Si la respuesta no está en el contexto, indícalo.
+You are an expert assistant on the book "An Introduction to Statistical Learning with Applications in Python".
+Your task is to answer the user's question based ONLY and EXCLUSIVELY on the following context.
+Do not invent information or use external knowledge. If the answer is not in the context, say so.
 
-CONTEXTO:
+CONTEXT:
 {context}
 
-PREGUNTA:
+QUESTION:
 {question}
 
-RESPUESTA:
+ANSWER:
 """
 
 def run_offline_evaluation():
     """
-    Este script ejecuta una evaluación completa del sistema RAG utilizando
-    el golden_dataset almacenado en la base de datos de PostgreSQL.
+    Run a full RAG system evaluation using the golden_dataset stored in
+    the PostgreSQL database.
     """
 
     run_id = f"run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -46,16 +46,16 @@ def run_offline_evaluation():
         db_url = db_url.replace("postgres://", "postgresql://", 1)
         
     if not db_url:
-        raise ValueError("DATABASE_URL no encontrada. Asegúrate de que tu .env esté configurado.")
+        raise ValueError("DATABASE_URL not found. Make sure your .env file is configured.")
 
-    print("🔌 Conectando a la base de datos...")
+    print("🔌 Connecting to the database...")
     engine = create_engine(db_url)
     
     query = "SELECT id, question, ground_truth FROM golden_dataset LIMIT 5"
     df = pd.read_sql_query(query, engine)
-    print(f"✅ Se cargaron {len(df)} preguntas desde la tabla golden_dataset.")
+    print(f"✅ Loaded {len(df)} questions from the golden_dataset table.")
     results = []
-    print("🚀 Ejecutando el sistema RAG para cada pregunta (esto puede tardar)...")
+    print("🚀 Running the RAG system for each question (this may take a while)...")
     
     chat_session = main_agent.start_chat(enable_automatic_function_calling=False)
 
@@ -85,7 +85,7 @@ def run_offline_evaluation():
 
     run_config = RunConfig(max_workers=1)
 
-    print("📊 Iniciando la evaluación completa con Ragas...")
+    print("📊 Starting the full evaluation with Ragas...")
     result = evaluate(
         evaluation_dataset,
         metrics=[faithfulness, answer_relevancy, context_precision, context_recall, answer_correctness],
@@ -122,7 +122,7 @@ def run_offline_evaluation():
         )
         return result_df
     except Exception as e:
-        print(f"❌ Error al guardar los resultados en la base de datos: {e}")
+        print(f"❌ Error saving results to the database: {e}")
 
 
 if __name__ == '__main__':

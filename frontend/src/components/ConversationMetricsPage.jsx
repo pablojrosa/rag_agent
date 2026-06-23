@@ -13,29 +13,29 @@ function ConversationMetricsPage() {
         const data = await getConversationMetrics();
         setMetrics(data);
       } catch (err) {
-        setError('No se pudieron cargar las métricas.');
+        setError('Could not load metrics.');
       }
       setIsLoading(false);
     };
     fetchMetrics();
   }, []);
 
-  if (isLoading) return <p>Cargando métricas...</p>;
+  if (isLoading) return <p>Loading metrics...</p>;
   if (error) return <p className="error-message">{error}</p>;
 
   return (
     <div className="page-container">
-      <h2>Métricas de Conversaciones en Vivo (Últimas 100)</h2>
+      <h2>Live Conversation Metrics (Latest 100)</h2>
       <div className="metrics-description">
-        <h4>¿Qué significa cada métrica?</h4>
+        <h4>What does each metric mean?</h4>
         <dl>
-          <dt><strong>Faithfulness (Fidelidad):</strong></dt>
+          <dt><strong>Faithfulness:</strong></dt>
           <dd>
-            Mide si la respuesta generada se basa ÚNICAMENTE en el contexto proporcionado. Un score alto (cercano a 1) significa que el modelo no está "alucinando" o inventando información.
+            Measures whether the generated answer is based ONLY on the provided context. A high score (close to 1) means the model is not hallucinating or inventing information.
           </dd>
-          <dt><strong>Answer Relevancy (Relevancia de la Respuesta):</strong></dt>
+          <dt><strong>Answer Relevancy:</strong></dt>
           <dd>
-            Evalúa si la respuesta es pertinente y responde directamente a la pregunta del usuario. Un score bajo podría indicar que la respuesta es vaga o se va por las ramas.
+            Evaluates whether the answer is relevant and directly addresses the user's question. A low score may indicate that the answer is vague or off-topic.
           </dd>
         </dl>
       </div>
@@ -43,8 +43,8 @@ function ConversationMetricsPage() {
         <table className="results-table">
           <thead>
             <tr>
-              <th>Mensaje del Usuario</th> 
-              <th>Mensaje del Bot</th>
+              <th>User Message</th>
+              <th>Bot Message</th>
               <th>Faithfulness</th>
               <th>Answer Relevancy</th>
               <th>Session ID</th>

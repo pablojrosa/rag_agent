@@ -1,4 +1,4 @@
-"""Añadir tabla EvaluationResult para guardar scores offline
+"""Add EvaluationResult table to store offline scores
 
 Revision ID: 5fd6f93cca11
 Revises: 8aa3f43c06d4

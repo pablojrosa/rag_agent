@@ -1,4 +1,4 @@
-"""Eliminar context_precision y context_recall de ConversationEval
+"""Remove context_precision and context_recall from ConversationEval
 
 Revision ID: 22ed5f6808e2
 Revises: 5fd6f93cca11

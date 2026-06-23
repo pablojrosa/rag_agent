@@ -30,10 +30,10 @@ def chat():
     data = request.get_json()
     message = data.get('message')
     session_id = data.get('session_id')
-    historial = data.get('history_chat', [])
+    history = data.get('history_chat', [])
 
     if not message or not session_id:
-        return jsonify({'error': 'Faltan los campos "message" o "session_id"'}), 400
+        return jsonify({'error': 'Missing required fields: "message" or "session_id"'}), 400
 
     try:
         # save user message
@@ -45,7 +45,7 @@ def chat():
         scores = search_result["scores"]
         avg_confidence = np.mean(scores) if scores else 0.0
     
-        chat_session = main_agent.start_chat(history=historial, enable_automatic_function_calling=True)
+        chat_session = main_agent.start_chat(history=history, enable_automatic_function_calling=True)
 
         response = chat_session.send_message(message)
         text_response = response.text
@@ -74,13 +74,13 @@ def chat():
     
     except Exception as e:
         db.session.rollback()
-        print((f"❌ Error procesando mensaje: {str(e)}"))
-        return jsonify({'error': f'Error procesando mensaje: {str(e)}'}), 500   
-    
+        print((f"❌ Error processing message: {str(e)}"))
+        return jsonify({'error': f'Error processing message: {str(e)}'}), 500
+
 @app.route('/offline-evaluation-results', methods=['GET'])
 def get_offline_evaluation_results():
     """
-    Endpoint para obtener los resultados de la última corrida de evaluación offline.
+    Endpoint to retrieve the results from the latest offline evaluation run.
     """
     try:
 
@@ -109,15 +109,15 @@ def get_offline_evaluation_results():
         return jsonify(results_list)
 
     except Exception as e:
-        print(f"❌ Error al obtener resultados de evaluación offline: {str(e)}")
-        return jsonify({'error': f'Error obteniendo resultados: {str(e)}'}), 500
+        print(f"❌ Error fetching offline evaluation results: {str(e)}")
+        return jsonify({'error': f'Error fetching results: {str(e)}'}), 500
 
 @app.route('/conversation-metrics', methods=['GET'])
 def get_conversation_metrics():
     try:
         query = db.session.query(ConversationEval, ChatMessage).join(
             ChatMessage, ConversationEval.message_id == ChatMessage.message_id
-        ).order_by(ConversationEval.timestamp.desc()).limit(100) # Traemos los últimos 100
+        ).order_by(ConversationEval.timestamp.desc()).limit(100)  # Fetch the latest 100
         
         results = query.all()
         
@@ -136,8 +136,8 @@ def get_conversation_metrics():
         return jsonify(metrics_list)
 
     except Exception as e:
-        print(f"❌ Error al obtener métricas de conversación: {str(e)}")
-        return jsonify({'error': f'Error obteniendo métricas: {str(e)}'}), 500
+        print(f"❌ Error fetching conversation metrics: {str(e)}")
+        return jsonify({'error': f'Error fetching metrics: {str(e)}'}), 500
     
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

@@ -13,60 +13,60 @@ function OfflineEvalsPage() {
         const data = await getOfflineEvaluationResults();
         setResults(data);
       } catch (err) {
-        setError('No se pudieron cargar los resultados. Ejecuta una evaluación desde tu terminal.');
+        setError('Could not load results. Run an evaluation from your terminal.');
       }
       setIsLoading(false);
     };
     fetchResults();
   }, []);
 
-  if (isLoading) return <p>Cargando resultados de la última evaluación...</p>;
+  if (isLoading) return <p>Loading the latest evaluation results...</p>;
   if (error) return <p className="error-message">{error}</p>;
 
   return (
     <div className="page-container">
-      <h2>Resultados de la Última Evaluación Offline</h2>
+      <h2>Latest Offline Evaluation Results</h2>
       <p>
-        Estos son los scores de la última evaluación ejecutada con <code>python run_evaluations.py</code>.
+        These are the scores from the latest evaluation run with <code>python run_evaluations.py</code>.
       </p>
       <div className="metrics-description">
-        <h4>¿Qué significa cada métrica?</h4>
+        <h4>What does each metric mean?</h4>
         <dl>
-          <dt><strong>Faithfulness (Fidelidad):</strong></dt>
+          <dt><strong>Faithfulness:</strong></dt>
           <dd>
-            Mide si la respuesta generada se basa ÚNICAMENTE en el contexto proporcionado. Un score alto (cercano a 1) significa que el modelo no está "alucinando" o inventando información.
+            Measures whether the generated answer is based ONLY on the provided context. A high score (close to 1) means the model is not hallucinating or inventing information.
           </dd>
 
-          <dt><strong>Answer Relevancy (Relevancia de la Respuesta):</strong></dt>
+          <dt><strong>Answer Relevancy:</strong></dt>
           <dd>
-            Evalúa si la respuesta es pertinente y responde directamente a la pregunta del usuario. Un score bajo podría indicar que la respuesta es vaga o se va por las ramas.
+            Evaluates whether the answer is relevant and directly addresses the user's question. A low score may indicate that the answer is vague or off-topic.
           </dd>
 
-          <dt><strong>Context Precision (Precisión del Contexto):</strong></dt>
+          <dt><strong>Context Precision:</strong></dt>
           <dd>
-            Se enfoca en el paso de "Retrieval". Mide qué tan relevante es el contexto que se recuperó para responder la pregunta. Un score alto indica que no se trajo "ruido" o información inútil.
+            Focuses on the retrieval step. It measures how relevant the retrieved context is for answering the question. A high score indicates that little useless noise was retrieved.
           </dd>
 
-          <dt><strong>Context Recall (Exhaustividad del Contexto):</strong></dt>
+          <dt><strong>Context Recall:</strong></dt>
           <dd>
-            También evalúa el "Retrieval". Mide si se recuperó TODA la información necesaria del texto original para responder completamente la pregunta. Un score bajo sugiere que se omitieron partes importantes.
+            Also evaluates retrieval. It measures whether ALL the necessary information was recovered from the source text to answer the question completely. A low score suggests important parts were missed.
           </dd>
 
-          <dt><strong>Answer Correctness (Corrección de la Respuesta):</strong></dt>
+          <dt><strong>Answer Correctness:</strong></dt>
           <dd>
-            Compara la respuesta generada con una respuesta "perfecta" (Ground Truth). Mide la exactitud y completitud de la respuesta. Es la métrica de calidad más completa, pero requiere un dataset de evaluación.
+            Compares the generated answer with an ideal answer (ground truth). It measures accuracy and completeness. It is the most comprehensive quality metric, but it requires an evaluation dataset.
           </dd>
         </dl>
       </div>
       
       {results.length > 0 ? (
         <div className="table-container">
-          <h3>Resultados de la Evaluación</h3>
+          <h3>Evaluation Results</h3>
           <table className="results-table">
             <thead>
               <tr>
-                <th>Pregunta</th>
-                <th>Respuesta Generada</th> 
+                <th>Question</th>
+                <th>Generated Answer</th>
                 <th>Faithfulness</th>
                 <th>Answer Relevancy</th>
                 <th>Context Precision</th>
@@ -89,7 +89,7 @@ function OfflineEvalsPage() {
             </tbody>
           </table>
         </div>
-      ):(<p>No se encontraron resultados. ¿Ya ejecutaste una evaluación?</p>
+      ):(<p>No results were found. Have you run an evaluation yet?</p>
       )}
     </div>
   );

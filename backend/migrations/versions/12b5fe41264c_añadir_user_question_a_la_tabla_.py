@@ -1,4 +1,4 @@
-"""Añadir user_question a la tabla ConversationEval
+"""Add user_question to the ConversationEval table
 
 Revision ID: 12b5fe41264c
 Revises: 22ed5f6808e2

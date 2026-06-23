@@ -1,128 +1,128 @@
 # Scanntech Challenge
-# Panel de Control RAG con Gemini y Métricas de Calidad 🚀
+# RAG Control Panel with Gemini and Quality Metrics 🚀
 
-Este proyecto fue desarrollado en el marco de un desafío técnico propuesto por Scanntech. Es un sistema que principalmente está compuesto por un chatbot basado en **RAG** (Retrieval-Augmented Generation) que responde preguntas sobre el libro "An Introduction to Statistical Learning with Applications in Python".
+This project was built as part of a technical challenge proposed by Scanntech. It is primarily a **RAG** (Retrieval-Augmented Generation) chatbot that answers questions about the book "An Introduction to Statistical Learning with Applications in Python".
 
-Además de ser un simple chatbot, este proyecto implementa un **Panel de Control** que permite monitorear, evaluar y mejorar la calidad del sistema RAG a través de métricas en tiempo real y evaluaciones exhaustivas bajo demanda.
+Beyond being a simple chatbot, the project also includes a **Control Panel** to monitor, evaluate, and improve the quality of the RAG system through real-time metrics and on-demand deep evaluations.
 
 ## Preview
 
 ![Panel de Control RAG](media/panel_de_control.png) 
 
-## Índice
+## Table of Contents
 
-- [Panel de Control RAG: Features Principales](#panel-de-control-rag-features-principales)
-- [Sistema de Evaluación Dual](#sistema-de-evaluación-dual)
-- [Stack Tecnológico](#stack-tecnológico)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Despliegue en Railway con Docker](#despliegue-en-railway-con-docker)
+- [RAG Control Panel: Main Features](#rag-control-panel-main-features)
+- [Dual Evaluation System](#dual-evaluation-system)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Railway Deployment with Docker](#railway-deployment-with-docker)
 
-## Panel de Control RAG: Features Principales
+## RAG Control Panel: Main Features
 
-La aplicación se presenta como un panel de control con tres secciones principales, diseñadas para interactuar con el agente y analizar su rendimiento.
+The application is presented as a dashboard with three main sections, designed to interact with the agent and analyze its performance.
 
-### 1. Chat Interactivo
-Una interfaz de chat construida con React que permite a los usuarios conversar con el agente. Incluye:
-- **Memoria de Conversación**: El historial del chat se envía al agente para mantener el contexto.
-- **Búsqueda Semántica**: El agente utiliza Pinecone para buscar en el libro y basar sus respuestas en la información recuperada.
-- **Persistencia de Conversaciones**: Todos los mensajes (usuario y agente) se almacenan en una base de datos PostgreSQL.
+### 1. Interactive Chat
+A chat interface built with React that allows users to talk to the agent. It includes:
+- **Conversation Memory**: The chat history is sent to the agent to preserve context.
+- **Semantic Search**: The agent uses Pinecone to search the book and ground its answers in retrieved information.
+- **Conversation Persistence**: All messages from both user and agent are stored in a PostgreSQL database.
 
-### 2. Métricas de Conversación (Métricas Online)
-Una vista de tabla que muestra las métricas de calidad de las conversaciones reales de los usuarios, calculadas en tiempo real.
-- **Evaluación Automática**: Cada respuesta del bot se evalúa en segundo plano para no afectar la experiencia del usuario.
-- **Métricas Clave**: Se miden `faithfulness` (fidelidad, para detectar alucinaciones) y `answer_relevancy` (relevancia de la respuesta).
-- **Contexto Completo**: La tabla muestra la pregunta del usuario, la respuesta del bot y sus respectivos scores, permitiendo un diagnóstico rápido de problemas.
+### 2. Conversation Metrics (Online Metrics)
+A table view that shows quality metrics for real user conversations, computed in real time.
+- **Automatic Evaluation**: Each bot response is evaluated in the background so the user experience is not affected.
+- **Key Metrics**: The system tracks `faithfulness` (to detect hallucinations) and `answer_relevancy`.
+- **Full Context**: The table shows the user's question, the bot's answer, and their respective scores for quick diagnosis.
 
-### 3. Evaluación del Sistema (Monitoreo Offline)
-Una sección dedicada a ejecutar una evaluación profunda y controlada del sistema RAG.
-- **Golden Dataset**: Utiliza un conjunto de datos curado de preguntas y respuestas "correctas" almacenado en PostgreSQL.
-- **Ejecución "Offline"**: Una interfaz donde se  un script que corre todo el dataset de evaluación contra el sistema RAG.
-- **Reporte Completo**: Muestra un reporte detallado con métricas avanzadas como `context_precision`, `context_recall` y `answer_correctness`, permitiendo validar objetivamente la calidad de los componentes de retrieval y generación.
+### 3. System Evaluation (Offline Monitoring)
+A section dedicated to running a deep, controlled evaluation of the RAG system.
+- **Golden Dataset**: Uses a curated set of question/answer pairs stored in PostgreSQL.
+- **Offline Execution**: Provides a UI for reviewing the results of a script that runs the full evaluation dataset against the RAG system.
+- **Full Report**: Displays advanced metrics such as `context_precision`, `context_recall`, and `answer_correctness`, making it possible to validate retrieval and generation quality objectively.
 
-## Sistema de Evaluación Dual
+## Dual Evaluation System
 
-El corazón de este proyecto es su enfoque no solo en brindar una interfaz para conversar, sino en la posibilidad de evaluar las respuestas utilizando la librería **Ragas** para implementar dos bucles de evaluación complementarios:
+The core of this project is not only the conversational interface, but also the ability to evaluate answers with **Ragas** through two complementary evaluation loops:
 
-- **Métricas Online:** Proporciona una visión constante de la performance del bot en producción, detectando problemas en conversaciones reales a través de métricas sin referencia.
-- **Monitoreo Offline:** Permite a los desarrolladores medir la calidad del sistema en un entorno controlado, comparar versiones de prompts y validar mejoras de forma científica antes de desplegarlas.
+- **Online Metrics:** Provides continuous visibility into bot performance in production by detecting issues in real conversations through reference-free metrics.
+- **Offline Monitoring:** Allows developers to measure system quality in a controlled environment, compare prompt versions, and validate improvements before deployment.
 
-## Stack Tecnológico
+## Technology Stack
 
 - **Frontend**:
-  - **Librería/Framework**: React, Vite
-  - **Estilos**: CSS puro
+  - **Library/Framework**: React, Vite
+  - **Styling**: Plain CSS
 
 - **Backend**:
   - **Framework**: Python, Flask
-  - **Base de Datos Relacional**: PostgreSQL
-  - **ORM y Migraciones**: SQLAlchemy, Flask-Migrate
-  - **Servidor WSGI**: Gunicorn
+  - **Relational Database**: PostgreSQL
+  - **ORM and Migrations**: SQLAlchemy, Flask-Migrate
+  - **WSGI Server**: Gunicorn
 
-- **IA**:
-  - **Modelo de Lenguaje**: Google Gemini (`gemini-2.0-flash`)
-  - **Base de Datos Vectorial**: Pinecone
-  - **Modelo de Embeddings**: OpenAI (`text-embedding-3-small`)
-  - **Librería de Evaluación RAG**: Ragas
+- **AI**:
+  - **Language Model**: Google Gemini (`gemini-2.0-flash`)
+  - **Vector Database**: Pinecone
+  - **Embedding Model**: OpenAI (`text-embedding-3-small`)
+  - **RAG Evaluation Library**: Ragas
 
-- **Despliegue**:
-  - **Plataforma**: Railway
-  - **Contenerización**: **Docker**
+- **Deployment**:
+  - **Platform**: Railway
+  - **Containerization**: **Docker**
 
-## Estructura del Proyecto
+## Project Structure
 
-El proyecto está organizado como un monorepo con dos directorios principales:
+The project is organized as a monorepo with two main directories:
 
 ```
 /
-├── backend/                       # Código del servidor Flask
-│   ├── data/                      # Libro en .pdf
+├── backend/                       # Flask server code
+│   ├── data/                      # Source book PDF
 │   ├── src/
-│   │   ├── app/                   # Lógica de la aplicación, modelos y herramientas
-│   │   └── services/              # Se encuentra alojado el vectorize_pdf.py
-│   ├── migrations/                # Scripts de migración de la base de datos
-│   ├── Dockerfile                 # Define el entorno de producción con Docker
-│   ├── .dockerignore              # Excluye archivos innecesarios de la imagen Docker
-│   ├── main.py                    # Punto de entrada de la aplicación Flask
-│   ├── run_evaluations.py         # Script para la evaluación offline
-│   ├── create_golden_dataset.py   # Script para crear el golden dataset
+│   │   ├── app/                   # Application logic, models, and tools
+│   │   └── services/              # Utility services such as vectorize_pdf.py
+│   ├── migrations/                # Database migration scripts
+│   ├── Dockerfile                 # Production Docker setup
+│   ├── .dockerignore              # Excludes unnecessary files from the Docker image
+│   ├── main.py                    # Flask application entrypoint
+│   ├── run_evaluations.py         # Offline evaluation script
+│   ├── create_golden_dataset.py   # Golden dataset seeding script
 │   └── requirements.txt
 │
-├── frontend/                      # Código de la aplicación de React
+├── frontend/                      # React application code
 │   ├── src/
-│   │   ├── api/                   # Funciones para llamar al backend
-│   │   ├── components/            # Componentes, páginas y estilos
-│   │   ├── App.jsx                # Orquestador de rutas
-│   │   └── main.jsx               # Punto de entrada de la aplicación React
+│   │   ├── api/                   # Backend API helpers
+│   │   ├── components/            # Components, pages, and styles
+│   │   ├── App.jsx                # Route orchestrator
+│   │   └── main.jsx               # React application entrypoint
 │   └── ...
-├── media/                         # Archivos complementarios
+├── media/                         # Supporting assets
 ├── .gitignore
 └── README.md
 ```
 
-## Despliegue en Railway con Docker
+## Railway Deployment with Docker
 
-Este proyecto está diseñado para ser desplegado de forma robusta y consistente en la plataforma **Railway** utilizando **Docker**. La contenerización asegura que el entorno de ejecución sea idéntico sin importar dónde se despliegue, eliminando problemas de dependencias de sistema (como la necesidad de `git` para la librería `ragas`).
+This project is designed to be deployed consistently on **Railway** using **Docker**. Containerization ensures the runtime environment is identical everywhere, avoiding system dependency issues such as requiring `git` for the `ragas` library.
 
-### Configuración en Railway
+### Railway Setup
 
-1.  **Crear el Proyecto**: Sube tu repositorio a GitHub y crea un nuevo proyecto en Railway a partir de él.
-2.  **Añadir Base de Datos**: Dentro del proyecto de Railway, añade un nuevo servicio de base de datos **PostgreSQL**. Railway inyectará automáticamente la variable de entorno `DATABASE_URL` en tus otros servicios.
-3.  **Configurar Variables de Entorno**: En el servicio `backend`, ve a la pestaña "Variables" y configura las siguientes claves secretas:
+1.  **Create the Project**: Push your repository to GitHub and create a new Railway project from it.
+2.  **Add the Database**: Inside the Railway project, add a new **PostgreSQL** service. Railway will automatically inject the `DATABASE_URL` environment variable into your other services.
+3.  **Configure Environment Variables**: In the `backend` service, open the "Variables" tab and configure the following secrets:
 
     ```ini
-    # Clave de API de Google para el modelo Gemini
-    GOOGLE_API_KEY="tu_clave_de_google"
+    # Google API key for Gemini
+    GOOGLE_API_KEY="your_google_key"
 
-    # Claves de API para Pinecone
-    PINECONE_API_KEY="tu_clave_de_pinecone"
+    # Pinecone API key
+    PINECONE_API_KEY="your_pinecone_key"
 
-    # Clave de API para OpenAI (usado para los embeddings)
-    OPENAI_API_KEY="tu_clave_de_openai"
+    # OpenAI API key (used for embeddings)
+    OPENAI_API_KEY="your_openai_key"
     
-    # Orígenes permitidos para CORS (la URL de tu frontend desplegado)
-    ALLOWED_ORIGINS="https://tu-frontend.up.railway.app" 
+    # Allowed CORS origins (your deployed frontend URL)
+    ALLOWED_ORIGINS="https://your-frontend.up.railway.app"
     ```
 
-4.  **Configurar Directorio Raíz (¡Importante!)**: Como este es un monorepo, debes indicarle a Railway dónde encontrar el backend. En los `Settings` del servicio `backend`, en la sección `Build`, establece el **Root Directory** en `backend/`.
+4.  **Set the Root Directory (Important)**: Since this is a monorepo, Railway needs to know where the backend lives. In the `backend` service `Settings`, under `Build`, set the **Root Directory** to `backend/`.
 
-5.  **Desplegar**: ¡Y listo! Con las variables y el directorio raíz configurados, cualquier `git push` a tu rama principal disparará un nuevo despliegue. Railway detectará automáticamente el `Dockerfile` dentro de `backend/`, construirá la imagen, y la pondrá en línea. El comando `CMD` dentro del `Dockerfile` se encarga de aplicar las migraciones (`flask db upgrade`) y luego iniciar el servidor (`gunicorn main:app`).
+5.  **Deploy**: Once the variables and root directory are configured, any `git push` to your main branch will trigger a new deployment. Railway will detect the `Dockerfile` in `backend/`, build the image, and put it online. The `CMD` instruction in the `Dockerfile` applies migrations (`flask db upgrade`) and then starts the server (`gunicorn main:app`).

@@ -24,7 +24,7 @@ const getSessionId = () => {
 function ChatPage() {
   const [messages, setMessages] = useState([
     { sender: 'bot', 
-      text: 'Bienvenido al chat con el libro "An Introduction to Statistical Learning with Applications in Python". En que puedo ayudarte hoy?',
+      text: 'Welcome to the chat for "An Introduction to Statistical Learning with Applications in Python." How can I help you today?',
       timestamp: formatTime(new Date()) }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,10 +59,10 @@ function ChatPage() {
       setMessages(prev => [...prev, botMessage]);
 
     } catch (error) {
-      console.error("Error en handleSendMessage:", error);
+      console.error('Error in handleSendMessage:', error);
       const errorMessage = {
         sender: 'bot',
-        text: 'Oops! Algo salió mal tratando de conectar con el bot.',
+        text: 'Oops! Something went wrong while connecting to the bot.',
         timestamp: formatTime(new Date())
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -74,7 +74,7 @@ function ChatPage() {
   return (
     <div className="chat-container">
       <ChatWindow messages={messages} />
-      {isLoading && <div className="loading-indicator">El bot está pensando...</div>}
+      {isLoading && <div className="loading-indicator">The bot is thinking...</div>}
       <InputBar onSendMessage={handleSendMessage} disabled={isLoading} />
     </div>
   );

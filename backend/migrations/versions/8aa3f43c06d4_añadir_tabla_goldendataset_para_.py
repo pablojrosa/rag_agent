@@ -1,4 +1,4 @@
-"""Añadir tabla GoldenDataset para evaluación offline
+"""Add GoldenDataset table for offline evaluation
 
 Revision ID: 8aa3f43c06d4
 Revises: c379d75da6fd
