@@ -1,4 +1,3 @@
-# Scanntech Challenge
 # RAG Control Panel with Gemini and Quality Metrics 🚀
 
 This project was built as part of a technical challenge proposed by Scanntech. It is primarily a **RAG** (Retrieval-Augmented Generation) chatbot that answers questions about the book "An Introduction to Statistical Learning with Applications in Python".
