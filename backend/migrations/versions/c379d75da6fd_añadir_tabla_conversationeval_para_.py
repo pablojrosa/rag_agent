@@ -1,4 +1,4 @@
-"""Add ConversationEval table for Ragas metrics
+"""Add ConversationEval table for legacy evaluation metrics
 
 Revision ID: c379d75da6fd
 Revises: 694f527c1374

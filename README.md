@@ -1,127 +1,194 @@
-# RAG Control Panel with Gemini and Quality Metrics 🚀
+# RAG Control Panel with OpenAI and Langfuse
 
-This project was built as part of a technical challenge proposed by Scanntech. It is primarily a **RAG** (Retrieval-Augmented Generation) chatbot that answers questions about the book "An Introduction to Statistical Learning with Applications in Python".
+A Flask and React assistant for *An Introduction to Statistical Learning with
+Applications in Python*. Pinecone retrieves book passages, OpenAI generates
+answers, PostgreSQL stores conversations, and Langfuse owns telemetry and new
+evaluation results. The application dashboard reads metric definitions and scores
+from Langfuse. No local background evaluation thread is required.
 
-Beyond being a simple chatbot, the project also includes a **Control Panel** to monitor, evaluate, and improve the quality of the RAG system through real-time metrics and on-demand deep evaluations.
+## Architecture
 
-## Preview
+- `backend/main.py`: HTTP validation, chat transactions, and dashboard routes.
+- `backend/src/app/rag_service.py`: shared retrieval and generation pipeline.
+- `backend/src/app/rag_tool.py`: embeddings and structured Pinecone passages.
+- `backend/src/app/main_agent.py`: OpenAI Responses generation and prompt.
+- `backend/src/app/observability.py`: optional Langfuse observations and sessions.
+- `backend/src/app/monitoring.py`: server-side Langfuse dashboard adapter.
+- `backend/setup_langfuse.py`: repeatable score/evaluator/rule setup.
+- `backend/create_golden_dataset.py`: publish reference questions to Langfuse.
+- `backend/run_evaluations.py`: dataset experiments using the shared pipeline.
+- `frontend/src/components/EvaluationDashboard.jsx`: configurable score columns,
+  reasoning details, experiment selection, comparison, refresh, and pagination.
 
-![Panel de Control RAG](media/panel_de_control.png) 
+A chat trace contains `chat-request`, `rag-answer`, `query-embedding`,
+`book-retrieval`, `answer-generation`, and `save-conversation`. The `rag-answer`
+observation contains question, retrieved context, and output together so a judge
+can evaluate it without reading sibling spans. Experiment observations also carry
+an expected answer. Sessions group chat turns; the outer trace records the saved
+assistant message ID. Generation observations include token usage for Langfuse
+cost calculation. Retrieved chunks retain source, page, ID, text, and similarity.
 
-## Table of Contents
+Telemetry includes question/answer content, retrieved passages, and generation
+history. Credentials and database URLs are not deliberately included in traces.
+`LANGFUSE_ENABLED=false` disables instrumentation and dashboard access. Missing
+credentials leave chat functional. Export failures do not replace application
+errors or prevent a response. The SDK batches exports; short-lived scripts flush
+before exiting. Telemetry is best effort and can be lost on abrupt termination.
 
-- [RAG Control Panel: Main Features](#rag-control-panel-main-features)
-- [Dual Evaluation System](#dual-evaluation-system)
-- [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Railway Deployment with Docker](#railway-deployment-with-docker)
+## Local setup
 
-## RAG Control Panel: Main Features
+Install Python 3.13 and Node.js 22.12+; start PostgreSQL and create a database.
+Prepare a Pinecone index containing the book embeddings.
 
-The application is presented as a dashboard with three main sections, designed to interact with the agent and analyze its performance.
-
-### 1. Interactive Chat
-A chat interface built with React that allows users to talk to the agent. It includes:
-- **Conversation Memory**: The chat history is sent to the agent to preserve context.
-- **Semantic Search**: The agent uses Pinecone to search the book and ground its answers in retrieved information.
-- **Conversation Persistence**: All messages from both user and agent are stored in a PostgreSQL database.
-
-### 2. Conversation Metrics (Online Metrics)
-A table view that shows quality metrics for real user conversations, computed in real time.
-- **Automatic Evaluation**: Each bot response is evaluated in the background so the user experience is not affected.
-- **Key Metrics**: The system tracks `faithfulness` (to detect hallucinations) and `answer_relevancy`.
-- **Full Context**: The table shows the user's question, the bot's answer, and their respective scores for quick diagnosis.
-
-### 3. System Evaluation (Offline Monitoring)
-A section dedicated to running a deep, controlled evaluation of the RAG system.
-- **Golden Dataset**: Uses a curated set of question/answer pairs stored in PostgreSQL.
-- **Offline Execution**: Provides a UI for reviewing the results of a script that runs the full evaluation dataset against the RAG system.
-- **Full Report**: Displays advanced metrics such as `context_precision`, `context_recall`, and `answer_correctness`, making it possible to validate retrieval and generation quality objectively.
-
-## Dual Evaluation System
-
-The core of this project is not only the conversational interface, but also the ability to evaluate answers with **Ragas** through two complementary evaluation loops:
-
-- **Online Metrics:** Provides continuous visibility into bot performance in production by detecting issues in real conversations through reference-free metrics.
-- **Offline Monitoring:** Allows developers to measure system quality in a controlled environment, compare prompt versions, and validate improvements before deployment.
-
-## Technology Stack
-
-- **Frontend**:
-  - **Library/Framework**: React, Vite
-  - **Styling**: Plain CSS
-
-- **Backend**:
-  - **Framework**: Python, Flask
-  - **Relational Database**: PostgreSQL
-  - **ORM and Migrations**: SQLAlchemy, Flask-Migrate
-  - **WSGI Server**: Gunicorn
-
-- **AI**:
-  - **Language Model**: Google Gemini (`gemini-2.0-flash`)
-  - **Vector Database**: Pinecone
-  - **Embedding Model**: OpenAI (`text-embedding-3-small`)
-  - **RAG Evaluation Library**: Ragas
-
-- **Deployment**:
-  - **Platform**: Railway
-  - **Containerization**: **Docker**
-
-## Project Structure
-
-The project is organized as a monorepo with two main directories:
-
-```
-/
-├── backend/                       # Flask server code
-│   ├── data/                      # Source book PDF
-│   ├── src/
-│   │   ├── app/                   # Application logic, models, and tools
-│   │   └── services/              # Utility services such as vectorize_pdf.py
-│   ├── migrations/                # Database migration scripts
-│   ├── Dockerfile                 # Production Docker setup
-│   ├── .dockerignore              # Excludes unnecessary files from the Docker image
-│   ├── main.py                    # Flask application entrypoint
-│   ├── run_evaluations.py         # Offline evaluation script
-│   ├── create_golden_dataset.py   # Golden dataset seeding script
-│   └── requirements.txt
-│
-├── frontend/                      # React application code
-│   ├── src/
-│   │   ├── api/                   # Backend API helpers
-│   │   ├── components/            # Components, pages, and styles
-│   │   ├── App.jsx                # Route orchestrator
-│   │   └── main.jsx               # React application entrypoint
-│   └── ...
-├── media/                         # Supporting assets
-├── .gitignore
-└── README.md
+```sh
+cd backend
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
 ```
 
-## Railway Deployment with Docker
+For an existing installation, keep your `.env` and add the new variables from
+`.env.example`. An existing Google API key is no longer used.
 
-This project is designed to be deployed consistently on **Railway** using **Docker**. Containerization ensures the runtime environment is identical everywhere, avoiding system dependency issues such as requiring `git` for the `ragas` library.
+Configure `OPENAI_API_KEY`, Pinecone credentials/index, and `DATABASE_URL`, then:
 
-### Railway Setup
+```sh
+flask --app main db upgrade
+python main.py
+```
 
-1.  **Create the Project**: Push your repository to GitHub and create a new Railway project from it.
-2.  **Add the Database**: Inside the Railway project, add a new **PostgreSQL** service. Railway will automatically inject the `DATABASE_URL` environment variable into your other services.
-3.  **Configure Environment Variables**: In the `backend` service, open the "Variables" tab and configure the following secrets:
+In another terminal:
 
-    ```ini
-    # Google API key for Gemini
-    GOOGLE_API_KEY="your_google_key"
+```sh
+cd frontend
+npm ci
+npm run dev
+```
 
-    # Pinecone API key
-    PINECONE_API_KEY="your_pinecone_key"
+Open http://localhost:5173. The backend listens on http://localhost:5001.
+Pinecone is initialized on first retrieval, so migrations do not need its service.
+The frontend still sends conversation history; PostgreSQL is not used to rebuild
+that history. Retrieval uses the current question only.
 
-    # OpenAI API key (used for embeddings)
-    OPENAI_API_KEY="your_openai_key"
-    
-    # Allowed CORS origins (your deployed frontend URL)
-    ALLOWED_ORIGINS="https://your-frontend.up.railway.app"
-    ```
+## Connect Langfuse
 
-4.  **Set the Root Directory (Important)**: Since this is a monorepo, Railway needs to know where the backend lives. In the `backend` service `Settings`, under `Build`, set the **Root Directory** to `backend/`.
+Use Langfuse Cloud or a compatible v4 server. This repo pins Python SDK 4.15.1 and
+uses Observations v2, Scores v3, and Experiments APIs. Older servers may not expose
+these endpoints. Configure:
 
-5.  **Deploy**: Once the variables and root directory are configured, any `git push` to your main branch will trigger a new deployment. Railway will detect the `Dockerfile` in `backend/`, build the image, and put it online. The `CMD` instruction in the `Dockerfile` applies migrations (`flask db upgrade`) and then starts the server (`gunicorn main:app`).
+```dotenv
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
+LANGFUSE_TRACING_ENVIRONMENT=development
+LANGFUSE_PROJECT_ID=your-project-id
+```
+
+Use the base URL for your project's region. Keep service keys on the backend.
+Restart Flask after changing environment variables.
+
+In Langfuse Project Settings, configure an **LLM Connection** for the judge. Its
+provider name must match `LANGFUSE_JUDGE_PROVIDER` (default `OpenAI`). This is a
+separate project configuration from the application's OpenAI key; the setup script
+does not upload that key. Judge calls consume the configured provider's quota.
+
+Then run:
+
+```sh
+python setup_langfuse.py
+python create_golden_dataset.py
+python run_evaluations.py --concurrency 2
+# Optional small smoke experiment
+python run_evaluations.py --name smoke-check --limit 2 --concurrency 1
+```
+
+To migrate existing reference questions instead of bundled examples:
+
+```sh
+python create_golden_dataset.py --from-postgres
+```
+
+Dataset item IDs are derived from dataset name and question, making repeat uploads
+update the same items. The bundled examples should be reviewed for book coverage
+before using them as a quality benchmark. Experiments run every active dataset
+item, rather than a fixed five-row sample.
+
+## Evaluation definitions
+
+The setup script creates numeric 0–1 score definitions and observation evaluators:
+
+| Score | Purpose | Rules |
+|---|---|---|
+| `groundedness_v1` | Claims supported by retrieved context | Online and offline |
+| `relevance_v1` | Response addresses the question | Online and offline |
+| `correctness_v1` | Response agrees with reference answer | Offline only |
+
+Rules match `rag-answer`, mode, and environment. Online sampling defaults to 10%;
+offline sampling is 100%. Set `LANGFUSE_ONLINE_EVAL_SAMPLE_RATE=1` **before initial
+setup** to score every online answer during validation. Existing definitions and
+rules are preserved on reruns; edit them in Langfuse or create a new version to
+change a rubric, model, or sampling policy. Rule execution is asynchronous, so a
+completed experiment can appear before its scores.
+
+Score configurations describe names and scales; evaluators produce values. Adding
+an active configuration and an evaluator in Langfuse makes the metric available to
+the dashboard without a new React column. `DASHBOARD_SCORE_NAMES` optionally limits
+visible names. Numeric, boolean, categorical, and structured values are rendered;
+hover over headers for descriptions and expand reasoning on individual scores.
+Version metric names when changing criteria. New judge scores are not numerically
+interchangeable with historical evaluator results.
+
+## Dashboard behavior
+
+- `GET /conversation-metrics?days=7&cursor=...` reads online observations and scores.
+- `GET /offline-evaluation-results?days=7&experiment_id=...&cursor=...` reads runs and
+  experiment items for `LANGFUSE_DATASET_NAME`.
+- Each page contains up to 20 items, with cursor pagination. The experiment picker
+  displays up to 50 recent runs in the chosen period (1–90 days).
+- The online performance table uses the Metrics API for full-period operation counts,
+  average durations, tokens, and costs.
+- Quality metric cards show **averages on the displayed page**, not full-run statistics.
+  Comparison displays the first page of the second experiment. Use Langfuse for
+  complete-run quality analysis and detailed cost/token dashboards.
+- Missing scores display `No score available`, never zero. This can mean pending,
+  excluded by sampling, or evaluation failure; the public score result alone does
+  not distinguish those states. Refresh to fetch newly available results.
+- Missing credentials produce a configuration state; provider failures return 503.
+- `LANGFUSE_PROJECT_ID` enables links to the detailed trace (Langfuse login required).
+
+PostgreSQL remains the conversation store. Historical evaluation/reference tables
+and migrations are retained to preserve data, but the chat and dashboards no longer
+write/read the old evaluation tables. No destructive database migration is needed.
+
+## Validation
+
+```sh
+cd backend
+.venv/bin/python -B -m unittest discover -s tests -v
+```
+
+```sh
+cd frontend
+npm run lint
+npm run build
+```
+
+After connecting Langfuse, send a book question, inspect its nested observations,
+check token usage, wait for scores, and refresh the dashboard. Run two experiments
+with distinct names to test comparison. Disable Langfuse and confirm chat still
+works. Local tests use mocked providers and an in-memory database.
+
+## Deployment
+
+The backend Dockerfile applies database migrations and starts Gunicorn using
+`PORT`. Set the service root to `backend/`, configure the same environment variables,
+and set `ALLOWED_ORIGINS` to the deployed frontend origin. The frontend uses
+`VITE_API_URL`, defaulting to the local backend URL during development.
+
+## References
+
+- [Langfuse Python SDK](https://langfuse.com/docs/observability/sdk/overview)
+- [Observation evaluators](https://langfuse.com/docs/evaluation/evaluation-methods/llm-as-a-judge)
+- [Experiments](https://langfuse.com/docs/evaluation/experiments/experiments-via-sdk)
+- [Scores API](https://langfuse.com/docs/api-and-data-platform/features/scores-api)

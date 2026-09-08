@@ -1,84 +1,48 @@
+"""Retrieve book passages from Pinecone using OpenAI embeddings."""
 import os
-from pinecone import Pinecone
+from functools import lru_cache
+
 from dotenv import load_dotenv
 from openai import OpenAI
+from pinecone import Pinecone
+
+from .observability import observation
 
 load_dotenv()
-top_k = 3
-PINECONE_API_KEY =os.getenv("PINECONE_API_KEY")
-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
-pc = Pinecone(api_key=PINECONE_API_KEY)
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
-OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY)
 
-if PINECONE_INDEX_NAME not in pc.list_indexes().names():
-    raise ValueError(f"The index '{PINECONE_INDEX_NAME}' does not exist in Pinecone.")
 
-index = pc.Index(PINECONE_INDEX_NAME)
-
-def get_embedding(text: str):
-    """Generate an embedding for a query."""
-    response = client.embeddings.create(
-        model=EMBEDDING_MODEL,
-        input=text
-    )
-    return response.data[0].embedding
-
-def semantic_search(query: str, top_k: int = top_k) -> str:
-    """
-    Search for and retrieve passages directly from the book
-    "An Introduction to Statistical Learning with Applications in Python".
-    Use this tool EVERY TIME the user asks about concepts, definitions,
-    algorithms, or examples from the book.
-
-    Parameters:
-      - query (str): The user's question or the key concepts to search for.
-        For example: "explanation of k-means" or "difference between Lasso and Ridge".
-    """
-    query_vector = get_embedding(query)
-
-    results = index.query(
-        vector=query_vector,
-        top_k=top_k,
-        include_metadata=True
+@lru_cache(maxsize=1)
+def get_index():
+    return Pinecone(api_key=os.environ["PINECONE_API_KEY"]).Index(
+        os.environ["PINECONE_INDEX_NAME"]
     )
 
-    text_response = ""
-    for match in results["matches"]:
-        text = match["metadata"]["text"].replace("\n", " ")
-        text_response += f"{text}\n\n"
-    return text_response.strip()
+
+def get_embedding(text):
+    model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    with observation("query-embedding", as_type="embedding", model=model, input=text) as span:
+        response = OpenAI().embeddings.create(model=model, input=text)
+        span.update(usage_details={"input": response.usage.prompt_tokens,
+                                   "total": response.usage.total_tokens})
+        return response.data[0].embedding
 
 
-def semantic_search_raw(query: str, top_k: int = 3) -> dict:
-    """
-    Functionally identical to semantic_search.
-    The only difference is the output format.
-    It is used to generate evaluation metrics.
-    """
-    query_vector = get_embedding(query)
+def semantic_search_raw(query, top_k=3):
+    vector = get_embedding(query)
+    with observation("book-retrieval", as_type="retriever", input=query,
+                     metadata={"top_k": top_k}) as span:
+        results = get_index().query(vector=vector, top_k=top_k, include_metadata=True)
+        chunks = []
+        for match in results.get("matches", []):
+            metadata = match.get("metadata") or {}
+            chunks.append({"id": match["id"], "text": metadata.get("text", ""),
+                           "page": metadata.get("page"), "source": metadata.get("source"),
+                           "score": match.get("score")})
+        span.update(output=chunks)
+        return {"context": "\n\n".join(chunk["text"] for chunk in chunks),
+                "chunks": chunks,
+                "scores": [chunk["score"] for chunk in chunks if chunk["score"] is not None]}
 
-    results = index.query(
-        vector=query_vector,
-        top_k=top_k,
-        include_metadata=True
-    )
 
-    contexts = []
-    scores = []
-
-    if "matches" in results:
-        for match in results["matches"]:
-            text = match["metadata"]["text"].replace("\n", " ")
-            contexts.append(text)
-
-            if "score" in match:
-                scores.append(match["score"])
-
-    final_context = "\n\n".join(contexts)
-
-    return {
-        "context": final_context,
-        "scores": scores
-    }
+def semantic_search(query, top_k=3):
+    return semantic_search_raw(query, top_k)["context"]
