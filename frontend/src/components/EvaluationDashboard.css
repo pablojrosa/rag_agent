@@ -1,0 +1,9 @@
+.evaluation-controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin: 1.5rem 0; }
+.evaluation-controls label { display: flex; gap: .5rem; align-items: center; }
+.evaluation-controls select, .evaluation-controls button { padding: .5rem .75rem; border-radius: 6px; border: 1px solid #64748b; font: inherit; }
+.metric-cards { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+.metric-cards article { display: flex; flex-direction: column; gap: .5rem; padding: 1rem; border: 1px solid #94a3b8; border-radius: 8px; min-width: 160px; }
+.metric-cards span { font-size: 1.6rem; font-weight: 600; }
+.evaluation-note { font-size: .9rem; }
+.results-table details { max-width: 350px; margin-top: .5rem; }
+.results-table summary { cursor: pointer; }

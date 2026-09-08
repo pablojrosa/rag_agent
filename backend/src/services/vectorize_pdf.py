@@ -4,7 +4,7 @@ from pypdf import PdfReader
 from pinecone import Pinecone
 import openai
 from tqdm import tqdm
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import time
 from pathlib import Path
 

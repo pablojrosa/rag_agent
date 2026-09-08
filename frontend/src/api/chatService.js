@@ -42,24 +42,11 @@ export const sendMessageToBot = async (inputText, currentMessages, sessionId) =>
   }
 };
 
-export const getOfflineEvaluationResults = async () => {
-  try {
-    const response = await fetch(`${API_URL}/offline-evaluation-results`);
-    if (!response.ok) throw new Error('Server error.');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching evaluation results:', error);
-    throw error;
-  }
-};
-
-export const getConversationMetrics = async () => {
-  try {
-    const response = await fetch(`${API_URL}/conversation-metrics`);
-    if (!response.ok) throw new Error('Server error while fetching metrics.');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching conversation metrics:', error);
-    throw error;
-  }
-};
+export async function getEvaluationDashboard(mode, params, signal) {
+  const query = new URLSearchParams(Object.entries(params).filter(([, value]) => value !== '' && value != null));
+  const path = mode === 'offline' ? '/offline-evaluation-results' : '/conversation-metrics';
+  const response = await fetch(`${API_URL}${path}?${query}`, { signal });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Could not load evaluations.');
+  return data;
+}

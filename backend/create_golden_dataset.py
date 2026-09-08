@@ -1,11 +1,10 @@
+"""Publish reference questions to Langfuse with stable item IDs."""
+import argparse
+import hashlib
 import os
-from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
-import psycopg2
-from dotenv import load_dotenv
-
-load_dotenv()
-DB_URL = os.environ.get("DATABASE_URL")
+from src.app.observability import get_client
 
 qa_pairs = [
     ("What is supervised learning?", "It is a machine learning approach in which a model learns from data with known labels in order to predict outputs for new data."),
@@ -164,27 +163,30 @@ qa_pairs = [
 
 
 def main():
-    try:
-        conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
-
-        # Insert Q&A pairs into the existing table.
-        for question, answer in qa_pairs:
-            cur.execute(
-                """
-                INSERT INTO golden_dataset (question, ground_truth, created_at)
-                VALUES (%s, %s, %s);
-                """,
-                (question, answer, datetime.utcnow()),
-            )
-
-        conn.commit()
-        cur.close()
-        conn.close()
-        print("✅ Dataset inserted successfully into Railway.")
-
-    except Exception as e:
-        print("❌ Error:", e)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--from-postgres", action="store_true",
+                        help="Migrate existing golden_dataset rows instead of bundled examples.")
+    args = parser.parse_args()
+    client = get_client()
+    if not client:
+        parser.error("Configure Langfuse credentials first.")
+    pairs = qa_pairs
+    if args.from_postgres:
+        import psycopg2
+        with psycopg2.connect(os.environ["DATABASE_URL"]) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT question, ground_truth FROM golden_dataset ORDER BY id")
+                pairs = cursor.fetchall()
+    name = os.getenv("LANGFUSE_DATASET_NAME", "statistical-learning")
+    client.create_dataset(name=name, description="Reference questions for the statistical learning assistant.")
+    def publish(pair):
+        question, expected = pair
+        item_id = hashlib.sha256(f"{name}:{question}".encode()).hexdigest()
+        client.create_dataset_item(dataset_name=name, id=item_id,
+                                   input={"question": question}, expected_output=expected)
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        list(pool.map(publish, pairs))
+    print(f"Published {len(pairs)} questions to {name}.")
 
 
 if __name__ == "__main__":
