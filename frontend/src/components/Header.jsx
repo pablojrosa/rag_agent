@@ -14,12 +14,6 @@ const Header = () => {
         <NavLink to="/" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           Chat
         </NavLink>
-        <NavLink to="/offline-evals" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          Offline Monitoring
-        </NavLink>
-        <NavLink to="/conversation-metrics" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          Online Metrics
-        </NavLink>
       </nav>
     </header>
   );

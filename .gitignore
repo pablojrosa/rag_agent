@@ -14,3 +14,4 @@ dist/
 build/
 develop-eggs/
 .installed.cfg
+LOCAL_BACKEND_ARCHITECTURE.md

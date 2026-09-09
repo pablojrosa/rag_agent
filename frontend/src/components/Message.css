@@ -4,6 +4,8 @@
   width: 100%;
 }
 
+.message-content { display: flex; flex-direction: column; gap: .55rem; max-width: 78%; }
+
 .message-bubble {
   max-width: 70%;
   padding: 10px 15px;
@@ -20,7 +22,10 @@
   background-color: #e5e5ea;
   color: #000;
   border-bottom-left-radius: 5px;
+  max-width: 100%;
 }
+
+.bot-message .chart-bubble { background: #fff; border: 1px solid #dbe4f0; border-radius: 16px; padding: .75rem; }
 
 .message-bubble {
   max-width: 70%;
@@ -41,6 +46,8 @@
   border-bottom-right-radius: 5px;
   min-width: 90px
 }
+
+.user-message .message-content { align-items: flex-end; }
 
 .message-text {
   margin: 0;
@@ -63,3 +70,15 @@
 .user-message .message-timestamp {
   color: #e1f5ff;
 }
+
+.chart-artifact { background: #f8fafc; border-radius: 12px; padding: .7rem; width: min(100%, 560px); }
+.chart-heading { align-items: center; color: #17233b; display: flex; font-size: .78rem; justify-content: space-between; gap: .75rem; }
+.chart-heading span { color: #64748b; font-size: .68rem; text-transform: uppercase; }
+.chart-svg { display: block; height: auto; margin-top: .45rem; overflow: visible; width: 100%; }
+.chart-axis { stroke: #cbd5e1; stroke-width: 1; }
+.chart-grid { stroke: #e2e8f0; stroke-dasharray: 3 4; stroke-width: 1; }
+.chart-bar { fill: #3b82f6; }
+.chart-line { fill: none; stroke: #2563eb; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
+.chart-dot { fill: #fff; stroke: #2563eb; stroke-width: 3; }
+.chart-label { fill: #64748b; font-size: 9px; }
+.chart-tick, .chart-axis-label { fill: #64748b; font-size: 9px; }
