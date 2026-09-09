@@ -1,7 +1,16 @@
+.chat-layout {
+  align-items: stretch;
+  display: flex;
+  gap: 1.25rem;
+  min-height: 680px;
+  width: 100%;
+}
+
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 100%; 
+  flex: 1;
+  height: 680px;
   background-color: #ffffff; 
   border-radius: 8px;
   overflow: hidden; 
@@ -30,4 +39,9 @@
   text-align: center;
   font-style: italic;
   color: #888;
+}
+
+@media (max-width: 820px) {
+  .chat-layout { flex-direction: column; min-height: 0; }
+  .chat-container { height: 620px; }
 }

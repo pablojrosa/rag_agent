@@ -2,26 +2,42 @@
 
 A Flask and React assistant for *An Introduction to Statistical Learning with
 Applications in Python*. Pinecone retrieves book passages, OpenAI generates
-answers, PostgreSQL stores conversations, and Langfuse owns telemetry and new
-evaluation results. The application dashboard reads metric definitions and scores
-from Langfuse. No local background evaluation thread is required.
+answers, PostgreSQL stores conversations, and Langfuse owns telemetry and
+evaluation results. Evaluation analysis is handled in Langfuse rather than in the
+application UI. No local background evaluation thread is required.
 
 ## Architecture
+
+For a visual, technical architecture map of the complete system, open the
+[Architecture Guide](docs/architecture.html) in a browser. It covers the request
+lifecycle, book RAG flow, Langfuse evaluation loop, data ownership, and repository
+entry points.
 
 - `backend/main.py`: HTTP validation, chat transactions, and dashboard routes.
 - `backend/src/app/rag_service.py`: shared retrieval and generation pipeline.
 - `backend/src/app/rag_tool.py`: embeddings and structured Pinecone passages.
-- `backend/src/app/main_agent.py`: OpenAI Responses generation and prompt.
+- `backend/src/app/main_agent.py`: OpenAI Responses generation, query rewriting,
+  chart artifacts, and Langfuse-managed prompts.
 - `backend/src/app/observability.py`: optional Langfuse observations and sessions.
 - `backend/src/app/monitoring.py`: server-side Langfuse dashboard adapter.
 - `backend/setup_langfuse.py`: repeatable score/evaluator/rule setup.
 - `backend/create_golden_dataset.py`: publish reference questions to Langfuse.
 - `backend/run_evaluations.py`: dataset experiments using the shared pipeline.
-- `frontend/src/components/EvaluationDashboard.jsx`: configurable score columns,
-  reasoning details, experiment selection, comparison, refresh, and pagination.
+- Langfuse Cloud: traces, scores, evaluator results, datasets, and experiments.
+
+The chat UI includes a left conversation sidebar. PostgreSQL stores conversations
+and messages; deleting a conversation applies a soft delete (`deleted=true`) so
+the user's history is hidden while audit data and Langfuse traces are preserved.
+
+The chat response can also include validated visual artifacts. When a chart adds
+value, the model returns an `artifacts` array alongside the text response. Each
+artifact is a data-only specification (`bar`, `line`, `scatter`, or `pie`); React
+renders it as SVG and never executes model-generated HTML or JavaScript. The
+backend filters invalid chart types, oversized datasets, and malformed points.
 
 A chat trace contains `chat-request`, `rag-answer`, `query-embedding`,
-`book-retrieval`, `answer-generation`, and `save-conversation`. The `rag-answer`
+`book-retrieval`, `answer-generation`, `save-conversation`, and, when applicable,
+`query-rewrite` and `create-chart`. The `rag-answer`
 observation contains question, retrieved context, and output together so a judge
 can evaluate it without reading sibling spans. Experiment observations also carry
 an expected answer. Sessions group chat turns; the outer trace records the saved
@@ -114,6 +130,15 @@ update the same items. The bundled examples should be reviewed for book coverage
 before using them as a quality benchmark. Experiments run every active dataset
 item, rather than a fixed five-row sample.
 
+## Prompt management
+
+The production prompts `book-answer` and `query-rewrite` are loaded from Langfuse
+Prompt Management using `LANGFUSE_PROMPT_LABEL` (default `production`). Langfuse
+prompt versions and labels are recorded on each generation observation. The SDK
+cache is controlled by `LANGFUSE_PROMPT_CACHE_TTL`; local prompt text is used as a
+fallback if Langfuse is unavailable. Create both prompts as text prompts in the
+project before switching the label away from the local fallback.
+
 ## Evaluation definitions
 
 The setup script creates numeric 0–1 score definitions and observation evaluators:
@@ -139,7 +164,15 @@ hover over headers for descriptions and expand reasoning on individual scores.
 Version metric names when changing criteria. New judge scores are not numerically
 interchangeable with historical evaluator results.
 
-## Dashboard behavior
+## Langfuse evaluation behavior
+
+Evaluation metrics are intentionally managed and visualized in Langfuse. The React
+application exposes the chat experience only; it does not render online or offline
+evaluation dashboards. Use the Langfuse project UI for trace inspection, score
+exploration, golden dataset experiments, comparisons, and cost/token analysis.
+
+The backend monitoring adapter and routes remain available for compatibility and
+future integrations, but they are not linked from the frontend navigation.
 
 - `GET /conversation-metrics?days=7&cursor=...` reads online observations and scores.
 - `GET /offline-evaluation-results?days=7&experiment_id=...&cursor=...` reads runs and

@@ -17,6 +17,20 @@ class ChatMessage(db.Model):
 
     def __repr__(self):
         return f"<ChatMessage {self.sender}@{self.session_id}: {self.message[:30]}>"
+
+
+class Conversation(db.Model):
+    __tablename__ = 'conversations'
+
+    session_id = db.Column(db.String, primary_key=True)
+    title = db.Column(db.String(200), nullable=False, default='New conversation')
+    deleted = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Conversation {self.session_id}: {self.title}>"
     
 class ConversationEval(db.Model):
     __tablename__ = 'conversation_evals'

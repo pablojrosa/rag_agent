@@ -18,6 +18,7 @@ const ChatWindow = ({ messages }) => {
           key={index} 
           sender={msg.sender} 
           text={msg.text} 
+          artifacts={msg.artifacts}
           timestamp={msg.timestamp}
         />
       ))}

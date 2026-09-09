@@ -25,6 +25,25 @@ def get_client():
     return Langfuse(timeout=5, environment=os.getenv("LANGFUSE_TRACING_ENVIRONMENT", "development"))
 
 
+def get_managed_prompt(name, fallback):
+    """Load a Langfuse prompt with a local fallback and traceable metadata."""
+    client = get_client()
+    if client is None:
+        return fallback, {"name": name, "version": None, "label": "local-fallback"}
+    try:
+        label = os.getenv("LANGFUSE_PROMPT_LABEL", "production")
+        prompt = client.get_prompt(name, label=label, type="text",
+                                   cache_ttl_seconds=int(os.getenv("LANGFUSE_PROMPT_CACHE_TTL", "60")),
+                                   fallback=fallback)
+        return (getattr(prompt, "prompt", fallback),
+                {"name": getattr(prompt, "name", name),
+                 "version": getattr(prompt, "version", None),
+                 "label": getattr(prompt, "label", label)})
+    except Exception:
+        logger.warning("Could not load managed prompt %s; using local fallback", name)
+        return fallback, {"name": name, "version": None, "label": "local-fallback"}
+
+
 class Observation:
     def __init__(self, span=None):
         self.span = span

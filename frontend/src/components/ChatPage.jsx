@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { sendMessageToBot } from '../api/chatService';
 import ChatWindow from './ChatWindow';
 import InputBar from './InputBar';
+import ConversationSidebar from './ConversationSidebar';
 import './ChatPage.css'; 
 import '../App.css';
 const formatTime = (date) => {
@@ -22,6 +23,8 @@ const getSessionId = () => {
 };
 
 function ChatPage() {
+  const [sessionId, setSessionId] = useState(getSessionId);
+  const [refreshConversations, setRefreshConversations] = useState(0);
   const [messages, setMessages] = useState([
     { sender: 'bot', 
       text: 'Welcome to the chat for "An Introduction to Statistical Learning with Applications in Python." How can I help you today?',
@@ -42,8 +45,6 @@ function ChatPage() {
     setIsLoading(true);
     
   
-    const sessionId = getSessionId();
-    
     try {
       const botReplyText = await sendMessageToBot(
         inputText,          
@@ -53,10 +54,12 @@ function ChatPage() {
       
       const botMessage = { 
         sender: 'bot',
-        text: botReplyText,
+        text: botReplyText.text,
+        artifacts: botReplyText.artifacts,
         timestamp: formatTime(new Date())
       };
       setMessages(prev => [...prev, botMessage]);
+      setRefreshConversations(value => value + 1);
 
     } catch (error) {
       console.error('Error in handleSendMessage:', error);
@@ -71,11 +74,31 @@ function ChatPage() {
     }
   };
 
+  const handleNewConversation = () => {
+    const nextSessionId = uuidv4();
+    localStorage.setItem('chatSessionId', nextSessionId);
+    setSessionId(nextSessionId);
+    setMessages([{ sender: 'bot', text: 'Welcome to the chat for "An Introduction to Statistical Learning with Applications in Python." How can I help you today?', timestamp: formatTime(new Date()) }]);
+  };
+
+  const handleSelectConversation = (conversation, savedMessages) => {
+    localStorage.setItem('chatSessionId', conversation.session_id);
+    setSessionId(conversation.session_id);
+    setMessages(savedMessages.map(item => ({
+      sender: item.sender === 'agent' ? 'bot' : 'user',
+      text: item.message,
+      timestamp: formatTime(new Date(item.timestamp)),
+    })));
+  };
+
   return (
-    <div className="chat-container">
-      <ChatWindow messages={messages} />
-      {isLoading && <div className="loading-indicator">The bot is thinking...</div>}
-      <InputBar onSendMessage={handleSendMessage} disabled={isLoading} />
+    <div className="chat-layout">
+      <ConversationSidebar activeSessionId={sessionId} onSelect={handleSelectConversation} onNew={handleNewConversation} refreshKey={refreshConversations} />
+      <div className="chat-container">
+        <ChatWindow messages={messages} />
+        {isLoading && <div className="loading-indicator">The bot is thinking...</div>}
+        <InputBar onSendMessage={handleSendMessage} disabled={isLoading} />
+      </div>
     </div>
   );
 }

@@ -57,8 +57,8 @@ def setup():
     from src.app.monitoring import definitions
     existing_scores = {item["name"] for item in definitions(client)}
     evaluators = {item["name"]: item for item in paginated(client.api.evaluators.list)}
-    rules = {item["name"] for item in paginated(client.api.evaluation_rules.list)}
-    sampling = float(os.getenv("LANGFUSE_ONLINE_EVAL_SAMPLE_RATE", "0.1"))
+    rules = {item["name"]: item for item in paginated(client.api.evaluation_rules.list)}
+    sampling = float(os.getenv("LANGFUSE_ONLINE_EVAL_SAMPLE_RATE", "1"))
     if not 0 <= sampling <= 1:
         raise ValueError("LANGFUSE_ONLINE_EVAL_SAMPLE_RATE must be between 0 and 1.")
     for name, rubric in RUBRICS.items():
@@ -75,11 +75,23 @@ def setup():
         for mode in modes:
             environment = os.getenv("LANGFUSE_TRACING_ENVIRONMENT", "development")
             rule_name = f"rag-{mode}-{name}-{environment}"
+            rule_filter = rule_filters(mode, environment)
+            target_sampling = sampling if mode == "online" else 1
             if rule_name not in rules:
                 client.api.evaluation_rules.create(
-                    name=rule_name, enabled=True, sampling=sampling if mode == "online" else 1,
+                    name=rule_name, enabled=True, sampling=target_sampling,
                     evaluator_assignments=[{"evaluator_id": evaluators[name]["id"]}],
-                    filter=rule_filters(mode, environment),
+                    filter=rule_filter,
+                )
+            else:
+                # Keep existing rules synchronized with local configuration.
+                # Langfuse rules are persistent, so changing .env alone does not
+                # update sampling, filters, enabled state, or evaluator linkage.
+                client.api.evaluation_rules.update(
+                    rules[rule_name]["id"], name=rule_name, enabled=True,
+                    sampling=target_sampling,
+                    evaluator_assignments=[{"evaluator_id": evaluators[name]["id"]}],
+                    filter=rule_filter,
                 )
     print("Langfuse score definitions, evaluators and rules are ready. Existing definitions were preserved.")
 
